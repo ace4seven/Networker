@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Publisher+ApiResult.swift
 //  
 //
 //  Created by Juraj Macák on 01/11/2022.

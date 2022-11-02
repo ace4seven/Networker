@@ -1,35 +1,23 @@
 //
-//  File.swift
-//  
+//  Endpoint.swift
+//  NetworkerDemo
 //
 //  Created by Juraj Macák on 01/11/2022.
 //
 
 import Foundation
+import Networker
 import Alamofire
-@testable import Networker
-
-enum Provider: ProviderType {
-    case swapi
-
-    func baseUrl() throws -> URL {
-        switch self {
-        case .swapi: return try "https://swapi.dev/api/".asURL()
-        }
-    }
-}
 
 enum Endpoint: EndpointType {
 
-    case planets
-
-    var provider: ProviderType {
-        Provider.swapi
-    }
+    case swapiPlanets
+    case planetDetail(page: Int)
 
     var path: String {
         switch self {
-        case .planets: return "planets/"
+        case .swapiPlanets: return "planets"
+        case .planetDetail(page: let page): return "planets/\(page)"
         }
     }
 
@@ -47,5 +35,9 @@ enum Endpoint: EndpointType {
 
     var headers: Alamofire.HTTPHeaders? {
         nil
+    }
+
+    func baseUrl() throws -> URL {
+        try "https://swapi.dev/api/".asURL()
     }
 }

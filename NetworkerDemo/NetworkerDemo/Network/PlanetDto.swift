@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  PlanetDto.swift
+//  NetworkerDemo
 //
 //  Created by Juraj Macák on 01/11/2022.
 //
@@ -15,7 +15,8 @@ struct PlanetsDto: Decodable {
     let results: [Planet]
 }
 
-struct Planet: Decodable {
+struct Planet: Decodable, Identifiable {
+    let id = UUID()
     let name, rotationPeriod, orbitalPeriod, diameter: String
     let climate, gravity, terrain, surfaceWater: String
     let population: String
@@ -32,3 +33,4 @@ struct Planet: Decodable {
         case population, residents, films, created, edited, url
     }
 }
+
