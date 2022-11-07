@@ -18,7 +18,7 @@ internal extension DataRequest {
         preprocessor: DataPreprocessor = DecodableResponseSerializer<T>.defaultDataPreprocessor,
         emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
         emptyResponseMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods
-    ) -> AnyPublisher<T, AFError> {
+    ) -> AnyPublisher<T, Error> {
         log()
             .validate()
             .publishDecodable(
@@ -28,6 +28,7 @@ internal extension DataRequest {
                 emptyResponseCodes: emptyResponseCodes,
                 emptyRequestMethods: emptyResponseMethods
             )
+            .map(mapToNetworkError)
             .flatMap(\.result.publisher)
             .eraseToAnyPublisher()
     }
@@ -39,7 +40,7 @@ internal extension DataRequest {
         preprocessor: DataPreprocessor = DecodableResponseSerializer<T>.defaultDataPreprocessor,
         emptyResponseCodes: Set<Int> = DecodableResponseSerializer<T>.defaultEmptyResponseCodes,
         emptyResponseMethods: Set<HTTPMethod> = DecodableResponseSerializer<T>.defaultEmptyRequestMethods
-    ) async -> Result<T, AFError> {
+    ) async -> Result<T, Error> {
         await withCheckedContinuation({ continuation in
             self.log()
                 .validate()
@@ -49,9 +50,49 @@ internal extension DataRequest {
                     decoder: decoder,
                     emptyResponseCodes: emptyResponseCodes,
                     emptyRequestMethods: emptyResponseMethods
-                ) { response in
-                    continuation.resume(returning: response.result)
+                ) { [weak self] response in
+                    continuation.resume(
+                        returning: self?.toResultWithAppError(response: response) ?? response.result.mapError { $0 as Error }
+                    )
                 }
         })
+    }
+
+    private func toResultWithAppError<T: Decodable>(response: AFDataResponse<T>) -> Result<T, Error> {
+        if !hasInternetConnection() {
+            return .failure(NetworkerError.noInternet)
+        }
+
+        switch response.result {
+        case .success(let data):
+            return .success(data)
+
+        case .failure(let error):
+            return .failure(NetworkerError.afError(error, response.data))
+        }
+    }
+
+    private func mapToNetworkError<T: Decodable>(_ response: DataResponse<T, AFError>) -> DataResponse<T, Error> {
+        let result = response.result.mapError { afError -> Error in
+            if hasInternetConnection() {
+                return NetworkerError.afError(afError, response.data)
+            }
+            return NetworkerError.noInternet
+        }
+
+        let dataResponse = DataResponse(
+            request: response.request,
+            response: response.response,
+            data: response.data,
+            metrics: response.metrics,
+            serializationDuration: response.serializationDuration,
+            result: result
+        )
+
+        return dataResponse
+    }
+
+    private func hasInternetConnection() -> Bool {
+        NetworkReachabilityManager()?.isReachable ?? false
     }
 }
