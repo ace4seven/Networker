@@ -87,7 +87,7 @@ public class Networker<T: EndpointType> {
     }
 }
 
-// MARK: - Private
+// MARK: - Internal
 
 extension Networker {
 
@@ -105,14 +105,14 @@ extension Networker {
         )
     }
 
-    private func encoding(endpoint: T) -> ParameterEncoding {
+    internal func encoding(endpoint: T) -> ParameterEncoding {
         switch endpoint.method {
         case .get: return URLEncoding(destination: .methodDependent)
         default: return JSONEncoding.default
         }
     }
 
-    private func requestUrl(_ endpoint: T) throws -> URL {
+    internal func requestUrl(_ endpoint: T) throws -> URL {
         do {
             return try endpoint
                 .baseUrl()
@@ -123,18 +123,23 @@ extension Networker {
         }
     }
 
-    private func setUrlWithComponents(for requestUrl: inout URL, endpoint: T) {
+    internal func setUrlWithComponents(for requestUrl: inout URL, endpoint: T) {
         let urlComponent = NSURLComponents(
             url: requestUrl,
             resolvingAgainstBaseURL: false
         )
 
-        urlComponent?.queryItems = endpoint.queryParameters?.jsonDictionary?.compactMap { key, value in
-
-            return URLQueryItem(
-                name: String(describing: key),
-                value: String(describing: value)
-            )
+        if endpoint.method == .get {
+            urlComponent?.queryItems = endpoint
+                .parameters?
+                .jsonDictionary?
+                .sorted(by: { $0.key < $1.key })
+                .compactMap { key, value in
+                    URLQueryItem(
+                        name: String(describing: key),
+                        value: String(describing: value)
+                    )
+                }
         }
 
         if let url = urlComponent?.url {
@@ -143,9 +148,11 @@ extension Networker {
 
     }
 
-    private func bodyData(_ endpoint: T) -> [String: Any] {
+    internal func bodyData(_ endpoint: T) -> [String: Any] {
         var bodyData: [String: Any] = [:]
-        bodyData = endpoint.parameters?.jsonDictionary ?? [:]
+        if endpoint.method != .get {
+            bodyData = endpoint.parameters?.jsonDictionary ?? [:]
+        }
         return bodyData
     }
 }

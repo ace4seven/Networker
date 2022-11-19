@@ -25,10 +25,6 @@ enum Endpoint: EndpointType {
         .get
     }
 
-    var queryParameters: Encodable? {
-        nil
-    }
-
     var parameters: Encodable? {
         nil
     }

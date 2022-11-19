@@ -13,7 +13,6 @@ public protocol EndpointType {
 
     var path: String { get }
     var method: HTTPMethod { get }
-    var queryParameters: Encodable? { get }
     var parameters: Encodable? { get }
     var headers: HTTPHeaders? { get }
 
