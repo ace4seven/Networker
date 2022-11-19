@@ -49,7 +49,6 @@ It is recommended to group all endpoints into a single enum file, which implemen
 protocol EndpointType {
     var path: String { get }
     var method: HTTPMethod { get }
-    var queryParameters: Encodable? { get }
     var parameters: Encodable? { get }
     var headers: HTTPHeaders? { get }
 
@@ -58,8 +57,7 @@ protocol EndpointType {
 ```
 - **Path** represent the second part of baseURL string 
 - **Method** - GET, POST, UPDATE, DELETE, PATCH ... [https://www.rfc-editor.org/rfc/rfc7231#section-4.3]
-- **Query parameters**, encoded into URL
-- **Parameters** cover body parameters
+- **Parameters** cover body or URL query parameters, depends on HTTPMethod
 - **Headers** for HTTP headers
 
 ## Endpoint implementation
