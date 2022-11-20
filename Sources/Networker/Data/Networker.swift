@@ -145,7 +145,6 @@ extension Networker {
         if let url = urlComponent?.url {
             requestUrl = url
         }
-
     }
 
     internal func bodyData(_ endpoint: T) -> [String: Any] {

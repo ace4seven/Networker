@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+
 @testable import Networker
 
 struct Person: Decodable, Equatable {
