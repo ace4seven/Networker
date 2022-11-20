@@ -140,3 +140,36 @@ func getPlantets() -> AnyPublisher<ApiResult<PlanetsDto, Error>, Never> {
         .mapToApiResult()
 }
 ```
+
+## NetworkerError
+
+All errors received from **networker.call** are **NetworkerError** enum type.
+
+```swift
+public enum NetworkerError: Error {
+
+    case afError(AFError, Data?)
+    case noInternet
+}
+```
+
+**There are two possible cases:**
+
+**afError** - Alamofire error with custom Payload data, if presented
+
+**noInternet** - In case application is in offline mode
+
+To cast Error in to the NetworkerError you can use provided extensions:
+
+```swift
+public extension Error {
+
+    var payloadData: Data? {
+        toNetworkerError()?.payloadData
+    }
+
+    func toNetworkerError() -> NetworkerError? {
+        self as? NetworkerError
+    }
+}
+```
